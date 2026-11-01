@@ -16,6 +16,7 @@ java {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.0' // Added from "Building with Tasks" lecture; build fail w/o this
     testImplementation 'org.hamcrest:hamcrest-library:2.2'
 }
 
@@ -31,3 +32,26 @@ application { //Allows  ./gradlew run --args=path-to-test-data
     mainClass = 'edu.odu.cs.MostCommonWords'
 }
 
+task copyHtml (type: Copy) {
+    from 'src/main/html'
+    into 'build/reports'
+}
+
+task copyDocs (type: Copy, dependsOn: 'javadoc') {
+    from 'build/docs'
+    into 'build/reports'
+}
+
+task reports (dependsOn: ['build', 'javadoc', 'copyHtml', 'copyDocs'])
+
+
+gitPublishCopy.dependsOn 'reports'
+gitPublish {
+    repoUri = 'git@github.com:ODU-CS350-F26/CS350--lab4-documentation--bisoncoffee.git'
+    branch = 'gh-pages'
+    contents {
+        from 'build/reports'
+    }
+}
+
+task deployReports (dependsOn: ['reports', 'gitPublishPush'])
